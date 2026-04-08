@@ -14,7 +14,9 @@ import {
   Plus,
   Minus,
   X,
-  Trash2
+  Trash2,
+  Youtube,
+  GraduationCap
 } from "lucide-react";
 
 const services = [
@@ -32,6 +34,7 @@ const offers = [
   { id: 'keratin', title: "Keratin + Hair Spa", price: "₹1999", fixed: ["Keratin Treatment", "Hair Spa"], description: "Premium hair care package" },
   { id: 'facial', title: "Facial + Cleanup + D-Tan", price: "₹1499", fixed: ["Facial", "D-Tan Cleanup"], description: "Complete face rejuvenation" },
   { id: 'mani', title: "Mani + Pedi + Wax", price: "₹999", fixed: ["Manicure", "Pedicure", "Waxing"], description: "Essential grooming bundle" },
+  { id: 'student', title: "Student Special", price: "Flat 20% OFF", description: "Valid for students with a valid ID card", icon: <GraduationCap size={32} className="text-gold" /> },
 ];
 
 export default function App() {
@@ -40,6 +43,7 @@ export default function App() {
   const [activeOffer, setActiveOffer] = useState<{id: string, count: number} | null>(null);
 
   const whatsappNumber = "919755221512";
+  const youtubeUrl = "https://youtube.com/@kaizenthefamilysalon?si=t0nqwnE0dZM9BEbJ";
 
   const toggleService = (service: string) => {
     setCart(prev => {
@@ -55,7 +59,7 @@ export default function App() {
   };
 
   const handleCheckout = () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 && !activeOffer) return;
     
     let message = `Hi Kaizen Salon, I'd like to book an appointment.\n\n`;
     
@@ -64,10 +68,12 @@ export default function App() {
       message += `*Offer:* ${offer?.title} (${offer?.price})\n`;
     }
     
-    message += `*Selected Services:*\n`;
-    cart.forEach((s, i) => {
-      message += `${i + 1}. ${s}\n`;
-    });
+    if (cart.length > 0) {
+      message += `*Selected Services:*\n`;
+      cart.forEach((s, i) => {
+        message += `${i + 1}. ${s}\n`;
+      });
+    }
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
@@ -88,15 +94,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-dark overflow-x-hidden">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gold/30 px-6 py-4 flex justify-between items-center">
+      {/* Navbar - Changed from fixed to absolute for scrolling */}
+      <nav className="absolute top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-sm border-b border-gold/20 px-6 py-4 flex justify-between items-center">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex flex-col"
         >
-          <h1 className="text-2xl font-bold tracking-tighter text-gold-gradient">KAIZEN</h1>
-          <span className="text-[10px] uppercase tracking-[0.3em] text-gray-400 -mt-1">Salon & Spa</span>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tighter text-gold-gradient">KAIZEN</h1>
+          <span className="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-gray-400 -mt-1">Family Saloon & Academy</span>
         </motion.div>
         
         <div className="flex items-center gap-4">
@@ -117,7 +123,7 @@ export default function App() {
             rel="noreferrer"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-gold hover:bg-gold-light text-black px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+            className="bg-gold hover:bg-gold-light text-black px-4 md:px-5 py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
           >
             Book Now
           </motion.a>
@@ -156,7 +162,9 @@ export default function App() {
                     <div>
                       <p className="text-[10px] uppercase tracking-widest text-gold font-bold">Active Offer</p>
                       <p className="font-bold">{offers.find(o => o.id === activeOffer.id)?.title}</p>
-                      <p className="text-xs text-gray-400">Select {activeOffer.count} services ({cart.length}/{activeOffer.count})</p>
+                      {activeOffer.count > 0 && (
+                        <p className="text-xs text-gray-400">Select {activeOffer.count} services ({cart.length}/{activeOffer.count})</p>
+                      )}
                     </div>
                     <button onClick={() => setActiveOffer(null)} className="text-gray-500 hover:text-white">
                       <Trash2 size={18} />
@@ -164,7 +172,7 @@ export default function App() {
                   </div>
                 )}
 
-                {cart.length === 0 ? (
+                {cart.length === 0 && !activeOffer ? (
                   <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
                     <Scissors size={48} className="mb-4" />
                     <p>No services selected yet.</p>
@@ -188,7 +196,7 @@ export default function App() {
               </div>
 
               <div className="p-6 border-t border-white/10 bg-black/40">
-                {activeOffer && cart.length < activeOffer.count && (
+                {activeOffer && activeOffer.count > 0 && cart.length < activeOffer.count && (
                   <p className="text-gold text-xs text-center mb-4 animate-pulse">
                     Please select {activeOffer.count - cart.length} more service(s) to complete the offer.
                   </p>
@@ -201,7 +209,7 @@ export default function App() {
                     Clear
                   </button>
                   <button 
-                    disabled={cart.length === 0 || (activeOffer ? cart.length < activeOffer.count : false)}
+                    disabled={(cart.length === 0 && !activeOffer) || (activeOffer && activeOffer.count > 0 ? cart.length < activeOffer.count : false)}
                     onClick={handleCheckout}
                     className="flex-[2] py-4 bg-gold text-black rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
@@ -232,13 +240,13 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-gold uppercase tracking-[0.5em] text-sm font-medium mb-4 block">Premium Grooming</span>
+            <span className="text-gold uppercase tracking-[0.5em] text-sm font-medium mb-4 block">Premium Grooming & Academy</span>
             <h2 className="text-5xl md:text-8xl font-bold mb-6 leading-tight">
               Where Beauty Meets <br />
               <span className="italic font-normal text-gold-gradient">Perfection</span>
             </h2>
             <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light">
-              Experience the art of transformation at Indore's most exclusive unisex salon. 
+              Experience the art of transformation at Indore's premier family saloon and academy. 
               Crafted for those who value excellence.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -265,7 +273,7 @@ export default function App() {
           <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Expertise</h2>
           <div className="w-20 h-1 bg-gold mx-auto mb-6" />
           <p className="text-gray-400 max-w-xl mx-auto">
-            {activeOffer 
+            {activeOffer && activeOffer.count > 0
               ? `Select ${activeOffer.count} services for your "${offers.find(o => o.id === activeOffer.id)?.title}"`
               : "Select services to add to your appointment."}
           </p>
@@ -274,7 +282,7 @@ export default function App() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {services.map((service, index) => {
             const isSelected = cart.includes(service);
-            const isDisabled = !isSelected && activeOffer && cart.length >= activeOffer.count;
+            const isDisabled = !isSelected && activeOffer && activeOffer.count > 0 && cart.length >= activeOffer.count;
             
             return (
               <motion.div
@@ -340,7 +348,7 @@ export default function App() {
               >
                 <div>
                   <div className="flex justify-between items-start mb-6">
-                    <Sparkles className="text-gold" size={32} />
+                    {offer.icon || <Sparkles className="text-gold" size={32} />}
                     {activeOffer?.id === offer.id && (
                       <span className="bg-gold text-black text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Active</span>
                     )}
@@ -367,6 +375,10 @@ export default function App() {
                         setCart(offer.fixed);
                         setActiveOffer({ id: offer.id, count: offer.fixed.length });
                         setIsCartOpen(true);
+                      } else {
+                        // For special offers like student discount
+                        setActiveOffer({ id: offer.id, count: 0 });
+                        setIsCartOpen(true);
                       }
                     }}
                     className={`w-full py-3 rounded-xl border transition-all text-xs font-bold uppercase tracking-widest ${
@@ -375,7 +387,7 @@ export default function App() {
                         : "border-white/10 group-hover:bg-gold group-hover:text-black group-hover:border-gold"
                     }`}
                   >
-                    {activeOffer?.id === offer.id ? "Selecting Services..." : "Choose Offer"}
+                    {activeOffer?.id === offer.id ? "Offer Applied" : "Choose Offer"}
                   </button>
                 </div>
               </motion.div>
@@ -384,23 +396,46 @@ export default function App() {
         </div>
       </section>
 
-      {/* Instagram Section */}
+      {/* Social Section */}
       <section className="py-24 px-6 max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] mb-8 shadow-2xl shadow-pink-500/20">
-          <Instagram size={40} className="text-white" />
+        <div className="flex justify-center gap-8 mb-12">
+          <motion.div 
+            whileHover={{ scale: 1.1 }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] shadow-2xl shadow-pink-500/20"
+          >
+            <Instagram size={40} className="text-white" />
+          </motion.div>
+          <motion.div 
+            whileHover={{ scale: 1.1 }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#FF0000] shadow-2xl shadow-red-500/20"
+          >
+            <Youtube size={40} className="text-white" />
+          </motion.div>
         </div>
-        <h2 className="text-4xl font-bold mb-6">Join Our Community</h2>
+        
+        <h2 className="text-4xl font-bold mb-6">Connect With Us</h2>
         <p className="text-gray-400 mb-10 text-lg">
-          Follow us on Instagram for the latest trends, behind-the-scenes, and exclusive flash sales.
+          Follow our journey on Instagram and YouTube for the latest trends, tutorials, and exclusive offers.
         </p>
-        <a 
-          href="https://www.instagram.com/_the_kaizen_?igsh=d2JvZWdtM2lmcW43" 
-          target="_blank" 
-          rel="noreferrer"
-          className="inline-flex items-center gap-3 bg-white text-black px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-gold transition-colors"
-        >
-          Visit Instagram <ExternalLink size={18} />
-        </a>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="https://www.instagram.com/_the_kaizen_?igsh=d2JvZWdtM2lmcW43" 
+            target="_blank" 
+            rel="noreferrer"
+            className="inline-flex items-center gap-3 bg-white text-black px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-gold transition-colors"
+          >
+            Instagram <ExternalLink size={18} />
+          </a>
+          <a 
+            href={youtubeUrl} 
+            target="_blank" 
+            rel="noreferrer"
+            className="inline-flex items-center gap-3 border border-white/20 text-white px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:border-red-500 hover:text-red-500 transition-colors"
+          >
+            YouTube <Youtube size={18} />
+          </a>
+        </div>
       </section>
 
       {/* Contact Section */}
@@ -464,10 +499,20 @@ export default function App() {
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-col items-center">
             <h1 className="text-xl font-bold tracking-tighter text-gold-gradient">KAIZEN</h1>
-            <span className="text-[8px] uppercase tracking-[0.3em] text-gray-500 -mt-1">Salon & Spa</span>
+            <span className="text-[8px] uppercase tracking-[0.3em] text-gray-500 -mt-1">Family Saloon & Academy</span>
           </div>
-          <p className="text-gray-500 text-xs tracking-widest uppercase">
-            © 2026 KAIZEN Salon | Designed by Prajjwal Patidar
+          
+          <div className="flex gap-4">
+            <a href="https://www.instagram.com/_the_kaizen_?igsh=d2JvZWdtM2lmcW43" target="_blank" rel="noreferrer" className="text-gray-500 hover:text-gold transition-colors">
+              <Instagram size={20} />
+            </a>
+            <a href={youtubeUrl} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-red-500 transition-colors">
+              <Youtube size={20} />
+            </a>
+          </div>
+
+          <p className="text-gray-500 text-[10px] tracking-widest uppercase">
+            © 2026 KAIZEN the family saloon and academy | Designed by Prajjwal Patidar
           </p>
         </div>
       </footer>
