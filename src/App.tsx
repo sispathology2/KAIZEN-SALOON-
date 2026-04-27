@@ -512,7 +512,7 @@ export default function App() {
           </div>
 
           <p className="text-gray-500 text-[10px] tracking-widest uppercase">
-            © 2026 KAIZEN the family saloon and academy | Designed by Prajjwal Patidar
+            © 2026 KAIZEN the family saloon and academy | Designed by <a href="https://www.instagram.com/prajjwal_ptdr?igsh=MTl4aDI5OW1sMXg2cg==" target="_blank" rel="noreferrer" className="hover:text-gold transition-colors">Prajjwal Patidar</a>
           </p>
         </div>
       </footer>
